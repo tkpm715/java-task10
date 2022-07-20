@@ -1,36 +1,36 @@
 package com.raisetech.task10.controller;
 
-import static javax.swing.text.StyleConstants.Size;
+import static com.raisetech.task10.security.SecurityConstants.SIGNUP_URL;
+import static com.raisetech.task10.security.SecurityConstants.LOGIN_ID;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.raisetech.task10.advice.BadRequestException;
-import com.raisetech.task10.advice.NotFoundException;
 import com.raisetech.task10.entity.UserDataEntity;
 import com.raisetech.task10.form.UserDataForm;
 import com.raisetech.task10.mapper.RefillMapper;
 import com.raisetech.task10.service.UserDataService;
 import java.util.List;
 import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
-import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import javax.validation.constraints.Size;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import com.raisetech.task10.form.LoginForm;
+import com.raisetech.task10.security.JWTAuthenticationFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 
 
 
@@ -39,7 +39,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 public class UserDataController {
 
   private final UserDataService userDataService;
+  private static final Logger LOGGER = LoggerFactory.getLogger(UserDataController.class);
 
+  @Autowired
+  private BCryptPasswordEncoder bCryptPasswordEncoder;
   public UserDataController(UserDataService userDataService) {
     this.userDataService = userDataService;
   }
@@ -65,6 +68,16 @@ public class UserDataController {
     String username = (String) (authentication.getPrincipal());
 
     return "this is private for " + username;
+  }
+
+  @PostMapping(value = SIGNUP_URL)
+  public void signup(@Valid @RequestBody LoginForm user) {
+
+    // passwordを暗号化する
+    user.encrypt(bCryptPasswordEncoder);
+
+    // DBに保存する処理を本来は書く
+    LOGGER.info("signup :" + user.toString());
   }
 
   @GetMapping("/users/{id}")

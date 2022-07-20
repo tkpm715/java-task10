@@ -1,4 +1,4 @@
-package com.raisetech.task10.Security;
+package com.raisetech.task10.security;
 
 public class SecurityConstants {
   public static final String SECRET = "nyasbasamplesecret";

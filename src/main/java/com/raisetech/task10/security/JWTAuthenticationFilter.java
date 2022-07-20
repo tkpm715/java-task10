@@ -1,24 +1,17 @@
-package com.raisetech.task10.Security;
+package com.raisetech.task10.security;
 
-import static com.raisetech.task10.Security.SecurityConstants.EXPIRATION_TIME;
-import static com.raisetech.task10.Security.SecurityConstants.HEADER_STRING;
-import static com.raisetech.task10.Security.SecurityConstants.LOGIN_ID;
-import static com.raisetech.task10.Security.SecurityConstants.LOGIN_URL;
-import static com.raisetech.task10.Security.SecurityConstants.PASSWORD;
-import static com.raisetech.task10.Security.SecurityConstants.TOKEN_PREFIX;
-import static com.raisetech.task10.Security.SecurityConstants.SECRET;
+import static com.raisetech.task10.security.SecurityConstants.EXPIRATION_TIME;
+import static com.raisetech.task10.security.SecurityConstants.HEADER_STRING;
+import static com.raisetech.task10.security.SecurityConstants.LOGIN_ID;
+import static com.raisetech.task10.security.SecurityConstants.LOGIN_URL;
+import static com.raisetech.task10.security.SecurityConstants.PASSWORD;
+import static com.raisetech.task10.security.SecurityConstants.TOKEN_PREFIX;
+import static com.raisetech.task10.security.SecurityConstants.SECRET;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.raisetech.task10.form.LoginForm;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,13 +20,21 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+
+
 public class JWTAuthenticationFilter extends
     UsernamePasswordAuthenticationFilter {
-  //UsernamePasswordAuthenticationFilterをそのまま利用することもできるが、
+  // UsernamePasswordAuthenticationFilterをそのまま利用することもできるが、
   // レスポンスをカスタマイズするため、これを継承してoverrideする
   private static final Logger LOGGER = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
 
@@ -61,15 +62,15 @@ public class JWTAuthenticationFilter extends
     try {
       // requestパラメータからユーザ情報を読み取る
       LoginForm loginForm = new ObjectMapper().readValue(req.getInputStream(), LoginForm.class);
-//UsernamePasswordAuthenticationTokenを生成してauthenticationManagerに渡す。
-// UsernamePasswordAuthenticationFilterのデフォルト実装だとauthoritiesが設定されない
+      // UsernamePasswordAuthenticationTokenを生成してauthenticationManagerに渡す。
+      // UsernamePasswordAuthenticationFilterのデフォルト実装だとauthoritiesが設定されない
       return authenticationManager.authenticate(
           new UsernamePasswordAuthenticationToken(
               loginForm.getLoginId(),
               loginForm.getPass(),
               new ArrayList<>())
       );
-    } catch (IOException e) {
+    } catch (Exception e) {
       LOGGER.error(e.getMessage());
       throw new RuntimeException(e);
     }
@@ -92,6 +93,6 @@ public class JWTAuthenticationFilter extends
     res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);  //レスポンスに書き込み
 
     // ここでレスポンスを組み立てると個別のパラメータを返せるがFilterの責務の範囲内で実施しなければならない
-    //    // auth.getPrincipal()で取得できるUserDetailsは自分で作ったEntityクラスにもできるのでカスタム属性は追加可能
+    // auth.getPrincipal()で取得できるUserDetailsは自分で作ったEntityクラスにもできるのでカスタム属性は追加可能
   }
 }
