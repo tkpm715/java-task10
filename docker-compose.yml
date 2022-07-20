@@ -1,0 +1,35 @@
+version: '3'
+services:
+  db:
+    image: mysql:8.0
+    container_name: task10_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ROOTPASS}
+      MYSQL_DATABASE: ${DATABASE}
+      MYSQL_USER: ${USERNAME}
+      MYSQL_PASSWORD: ${USERPASS}
+
+    ports:
+      - "3306:3306"
+    env_file:
+      - .env
+    volumes:
+      - ./docker/db/data:/var/lib/mysql
+      - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
+
+  phpmyadmin:
+    container_name: task10_phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOSTS=db
+      - PMA_USER=${USERNAME}
+      - PMA_PASSWORD=${USERPASS}
+    ports:
+      - 4300:80
+    volumes:
+      - ./docker/phpmyadmin/sessions:/sessions
+    env_file:
+      - .env
+
+
