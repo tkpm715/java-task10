@@ -1,7 +1,5 @@
 package com.raisetech.task10.controller;
 
-import static com.raisetech.task10.security.SecurityConstants.SIGNUP_URL;
-import static com.raisetech.task10.security.SecurityConstants.LOGIN_ID;
 
 import com.raisetech.task10.advice.BadRequestException;
 import com.raisetech.task10.entity.UserDataEntity;
@@ -9,12 +7,9 @@ import com.raisetech.task10.form.UserDataForm;
 import com.raisetech.task10.mapper.RefillMapper;
 import com.raisetech.task10.service.UserDataService;
 import java.util.List;
-import javax.validation.Valid;
 import org.mapstruct.factory.Mappers;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.BindingResult;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,115 +19,83 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.raisetech.task10.form.LoginForm;
-import com.raisetech.task10.security.JWTAuthenticationFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-
-
-
 @RestController
 @Validated
 public class UserDataController {
-
   private final UserDataService userDataService;
-  private static final Logger LOGGER = LoggerFactory.getLogger(UserDataController.class);
 
-  @Autowired
-  private BCryptPasswordEncoder bCryptPasswordEncoder;
   public UserDataController(UserDataService userDataService) {
     this.userDataService = userDataService;
   }
 
-//    if (manageUserDataService.findMatch(year).stream().map(ManageUserDataResponse::new).toList()
-//        .isEmpty() ) {
-//      throw new MyException("入力に誤りがあります。年の値として2010～2019を入力してください。");
-//    }
-//    return manageUserDataService.findMatch(year).stream().map(ManageUserDataResponse::new)
-//        .toList();
-
-  @GetMapping(value = "/public")
-  public String publicApi() {
-    return "This page is public";
-  }
-
-  @GetMapping(value = "/private")
-  public String privateApi() {
-
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    // JWTAuthenticationFilter#successfulAuthenticationで設定したusernameを取り出す
-    String username = (String) (authentication.getPrincipal());
-
-    return "this is private for " + username;
-  }
-
-  @PostMapping(value = SIGNUP_URL)
-  public void signup(@Valid @RequestBody LoginForm user) {
-
-    // passwordを暗号化する
-    user.encrypt(bCryptPasswordEncoder);
-
-    // DBに保存する処理を本来は書く
-    LOGGER.info("signup :" + user.toString());
-  }
-
   @GetMapping("/users/{id}")
   public UserDataResponse displayUserData(@PathVariable("id") int id) {
-    UserDataEntity userDataEntity = userDataService.findOne(id);
-
+    //パスパラメータ指定のIDに該当するデータを取得
+    UserDataEntity userDataEntity = userDataService.findOneUserData(id);
+    //取得したデータをResponseクラスに詰める
     RefillMapper refillMapper = Mappers.getMapper(RefillMapper.class);
     UserDataResponse userDataResponse =
         refillMapper.useDataEntityToUserDataResponse(userDataEntity);
-
+    //郵便番号を引数に渡し返ってきた住所データをResponseクラスに詰める
     userDataResponse.setAddress(
         userDataService.fetchAddress(userDataResponse.getPostcode()));
-
+    //指定IDに対するユーザ情報に加え外部apiから取得した住所を表示
     return userDataResponse;
   }
 
   @GetMapping("/users/")
   public List<UserDataEntity> displayAllUserDat() {
-    //return userDataService.findAll().stream().map(UserDataResponse::new).toList();
-    return userDataService.findAll();
+    //全てのデータを表示
+    return userDataService.findAllUserData();
   }
 
   @PostMapping("/users/")
-  public String createUserDate(@RequestBody @Valid UserDataForm userDataForm,
-                               BindingResult result) {
-    if (result.hasErrors()) {
-      throw new BadRequestException(result.getFieldError().getDefaultMessage());
+  public ResponseEntity<String> createUserDate(
+      @RequestBody @Validated UserDataForm userDataForm,
+      Errors errors) {
+    if (errors.hasErrors()) {
+      //バリデーションに引っかかった場合は400BadRequestを表示
+      throw new BadRequestException(errors.getFieldError().getDefaultMessage());
     }
 
     RefillMapper refillMapper = Mappers.getMapper(RefillMapper.class);
     UserDataEntity userDataEntity =
         refillMapper.useDataFormToUserDataEntity(userDataForm);
-    userDataService.save(userDataEntity);
-    return "登録が完了しました";
+    //データ作成実行
+    userDataService.saveUserData(userDataEntity);
+    return ResponseEntity.ok("データの登録が完了しました");
   }
 
   @PatchMapping("/users/{id}")
-  public String changeUserData(@PathVariable("id") int id,
-                               @RequestBody @Valid UserDataForm userDataForm,
-                               BindingResult result) {
-    if (result.hasErrors()) {
-      throw new BadRequestException(result.getFieldError().getDefaultMessage());
+  public ResponseEntity<String> changeUserData(@PathVariable("id") int id,
+                                               @RequestBody @Validated
+                                               UserDataForm userDataForm,
+                                               Errors errors) {
+    if (errors.hasErrors()) {
+      //バリデーションに引っかかった場合は400BadRequestを表示
+      throw new BadRequestException(errors.getFieldError().getDefaultMessage());
     }
+    //パスパラメータ指定のIDが存在するかチェック
+    UserDataEntity dataExistenceCheck = userDataService.findOneUserData(id);
+    //ユーザIDはパスパラメータ、名前と郵便番号はbodyで受け取る。
+    //IDをformに詰める
     userDataForm.setId(id);
+    //formをentityに詰める
     RefillMapper refillMapper = Mappers.getMapper(RefillMapper.class);
     UserDataEntity userDataEntity =
         refillMapper.useDataFormToUserDataEntity(userDataForm);
-    userDataService.update(userDataEntity);
-    return "データを変更しました";
+    //データ更新実行
+    userDataService.updateUserData(userDataEntity);
+    return ResponseEntity.ok("データを変更しました");
   }
 
   @DeleteMapping("/users/{id}")
-  public String deleteUserData(@PathVariable("id") int id) {
-    userDataService.delete(id);
-    return "データを削除しました";
+  public ResponseEntity<String> deleteUserData(@PathVariable("id") int id) {
+    //パスパラメータ指定のIDが存在するかチェック
+    UserDataEntity dataExistenceCheck = userDataService.findOneUserData(id);
+    //データ削除実行
+    userDataService.deleteUserData(id);
+    return ResponseEntity.ok("データを削除しました");
   }
 
 }

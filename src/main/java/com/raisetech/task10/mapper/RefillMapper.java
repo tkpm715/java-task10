@@ -5,15 +5,15 @@ import com.raisetech.task10.entity.UserDataEntity;
 import com.raisetech.task10.form.UserDataForm;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
-import org.springframework.boot.autoconfigure.amqp.RabbitRetryTemplateCustomizer;
-
 
 @Mapper
 public interface RefillMapper {
+  //formをentityに詰める
+  UserDataEntity useDataFormToUserDataEntity(UserDataForm userDataForm);
 
-    UserDataEntity useDataFormToUserDataEntity(UserDataForm userDataForm);
-    @Mapping(target = "address", ignore = true)
-    UserDataResponse useDataEntityToUserDataResponse(UserDataEntity userDataEntity);
+  //entityをresponseに詰める（responseのaddressフィールドは除く）
+  @Mapping(target = "address", ignore = true)
+  UserDataResponse useDataEntityToUserDataResponse(
+      UserDataEntity userDataEntity);
 
 }

@@ -11,6 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @RestControllerAdvice
 public class MyExceptionHandler extends ResponseEntityExceptionHandler {
+  //400BadRequest例外
   @ExceptionHandler(BadRequestException.class)
   public ResponseEntity<Object> handleBadRequestException(
       BadRequestException exception, WebRequest request) {
@@ -23,7 +24,8 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
         request);
   }
 
-  private Object createBadRequestErrorResponseBody(BadRequestException exception, WebRequest request) {
+  private Object createBadRequestErrorResponseBody(
+      BadRequestException exception, WebRequest request) {
     ErrorResponseBody errorResponseBody = new ErrorResponseBody();
     int responseCode = HttpStatus.BAD_REQUEST.value();
     String responseErrorMessage = HttpStatus.BAD_REQUEST.getReasonPhrase();
@@ -36,8 +38,11 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
     return errorResponseBody;
   }
 
+
+  //404NotFound例外
   @ExceptionHandler(NotFoundException.class)
-  public ResponseEntity<Object> handledNotFoundException(NotFoundException exception, WebRequest request) {
+  public ResponseEntity<Object> handledNotFoundException(
+      NotFoundException exception, WebRequest request) {
     HttpHeaders headers = new HttpHeaders();
 
     return super.handleExceptionInternal(exception,
@@ -47,7 +52,8 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
         request);
   }
 
-  private Object createNotFoundErrorResponseBody(NotFoundException exception, WebRequest request) {
+  private Object createNotFoundErrorResponseBody(NotFoundException exception,
+                                                 WebRequest request) {
     ErrorResponseBody errorResponseBody = new ErrorResponseBody();
     int responseCode = HttpStatus.NOT_FOUND.value();
     String responseErrorMessage = HttpStatus.NOT_FOUND.getReasonPhrase();
@@ -60,5 +66,5 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
     return errorResponseBody;
   }
 
-  }
+}
 

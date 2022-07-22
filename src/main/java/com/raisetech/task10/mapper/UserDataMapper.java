@@ -12,31 +12,25 @@ import org.apache.ibatis.annotations.Update;
 
 @Mapper
 public interface UserDataMapper {
-//  @Select("select * from movie where year_of_production=#{yearOfProduction}")
-//  List<UserData> findOne(String yearOfProduction);
-
-//  @Select("select exists(select * from user where id=#{id})")
-//  Integer recordCheck(Integer id);
-
+  //全件取得
   @Select("select * from users")
-  List<UserDataEntity> findAll();
+  List<UserDataEntity> findAllUserData();
 
   //１件取得
   @Select("select * from users where id=#{id}")
-  Optional<UserDataEntity> findOne(Integer id);
+  Optional<UserDataEntity> findOneUserData(Integer id);
 
-  /* ユーザー 登録*/
+  ///データ登録
   @Insert("insert into users (name,postcode) values (#{name},#{postcode})")
   @Options(useGeneratedKeys = true)
-  void save(UserDataEntity userDataEntity);
-  //public int insertOne( MUser user);
+  void saveUserData(UserDataEntity userDataEntity);
 
+  //データ更新
   @Update("update users set name=#{name}, postcode=#{postcode} where id=#{id}")
-  void update(UserDataEntity userDataEntity);
+  void updateUserData(UserDataEntity userDataEntity);
 
+  //データ削除
   @Delete("delete from users where id=#{id}")
-  void delete(Integer id);
-
-
+  void deleteUserData(Integer id);
 }
 

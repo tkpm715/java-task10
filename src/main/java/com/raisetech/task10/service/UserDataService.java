@@ -1,19 +1,18 @@
 package com.raisetech.task10.service;
 
-
 import com.raisetech.task10.entity.UserDataEntity;
 import java.util.List;
 
 public interface UserDataService {
-  public List<UserDataEntity> findAll();
+  List<UserDataEntity> findAllUserData();
 
-  public UserDataEntity findOne(Integer id);
+  UserDataEntity findOneUserData(Integer id);
 
-  public void save (UserDataEntity userDataEntity);
+  void saveUserData(UserDataEntity userDataEntity);
 
-  public void update(UserDataEntity userDataEntity);
+  void updateUserData(UserDataEntity userDataEntity);
 
-  public void delete(Integer id);
+  void deleteUserData(Integer id);
 
-  public String fetchAddress(String postCode);
+  String fetchAddress(String postCode);
 }
