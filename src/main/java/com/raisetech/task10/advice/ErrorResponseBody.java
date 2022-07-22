@@ -5,6 +5,12 @@ public class ErrorResponseBody {
   private String error;
   private String message;
 
+  public ErrorResponseBody(int status, String error, String message) {
+    this.status = status;
+    this.error = error;
+    this.message = message;
+  }
+
   public int getStatus() {
     return status;
   }

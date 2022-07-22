@@ -24,16 +24,13 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
         request);
   }
 
-  private Object createBadRequestErrorResponseBody(
+  private ErrorResponseBody createBadRequestErrorResponseBody(
       BadRequestException exception, WebRequest request) {
-    ErrorResponseBody errorResponseBody = new ErrorResponseBody();
     int responseCode = HttpStatus.BAD_REQUEST.value();
     String responseErrorMessage = HttpStatus.BAD_REQUEST.getReasonPhrase();
     String uri = ((ServletWebRequest) request).getRequest().getRequestURI();
 
-    errorResponseBody.setStatus(responseCode);
-    errorResponseBody.setError(responseErrorMessage);
-    errorResponseBody.setMessage(exception.getMessage());
+    ErrorResponseBody errorResponseBody = new ErrorResponseBody(responseCode,responseErrorMessage,exception.getMessage());
 
     return errorResponseBody;
   }
@@ -52,16 +49,13 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
         request);
   }
 
-  private Object createNotFoundErrorResponseBody(NotFoundException exception,
+  private ErrorResponseBody createNotFoundErrorResponseBody(NotFoundException exception,
                                                  WebRequest request) {
-    ErrorResponseBody errorResponseBody = new ErrorResponseBody();
     int responseCode = HttpStatus.NOT_FOUND.value();
     String responseErrorMessage = HttpStatus.NOT_FOUND.getReasonPhrase();
     String uri = ((ServletWebRequest) request).getRequest().getRequestURI();
 
-    errorResponseBody.setStatus(responseCode);
-    errorResponseBody.setError(responseErrorMessage);
-    errorResponseBody.setMessage(exception.getMessage());
+    ErrorResponseBody errorResponseBody = new ErrorResponseBody(responseCode,responseErrorMessage,exception.getMessage());
 
     return errorResponseBody;
   }
