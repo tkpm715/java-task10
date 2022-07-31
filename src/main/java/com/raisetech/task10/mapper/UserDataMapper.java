@@ -18,9 +18,9 @@ public interface UserDataMapper {
   @Select("select * from users where id=#{id}")
   Optional<UserDataEntity> findOneUserData(Integer id);
 
-  @Insert("insert into users (name,postcode) values (#{name},#{postcode})")
+  @Insert("insert into users (name, postcode) values (#{name}, #{postcode})")
   @Options(useGeneratedKeys = true)
-  void saveUserData(UserDataEntity userDataEntity);
+  void saveUserData(UserDataEntity userDataForm);
 
   @Update("update users set name=#{name}, postcode=#{postcode} where id=#{id}")
   void updateUserData(UserDataEntity userDataEntity);

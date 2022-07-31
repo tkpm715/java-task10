@@ -5,9 +5,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.raisetech.task10.advice.BadRequestException;
 import com.raisetech.task10.advice.NotFoundException;
+import com.raisetech.task10.controller.UserDataResponse;
 import com.raisetech.task10.entity.UserDataEntity;
+import com.raisetech.task10.form.UserDataForm;
+import com.raisetech.task10.mapper.RefillMapper;
 import com.raisetech.task10.mapper.UserDataMapper;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.mapstruct.factory.Mappers;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,33 +30,58 @@ public class UserDataServiceImpl implements UserDataService {
     this.restTemplate = restTemplateBuilder.build();
   }
 
-  @Transactional
   @Override
   //全件データ取得
-  public List<UserDataEntity> findAllUserData() {
-    return userDataMapper.findAllUserData();
+  public List<UserDataResponse> findAllUserData() {
+    return userDataMapper.findAllUserData().stream()
+        .map(n -> new UserDataResponse(n.getId(), n.getName(), n.getPostcode(),
+            fetchAddress(n.getPostcode()))).collect(Collectors.toList());
   }
 
-  @Transactional
   @Override
   //指定IDデータ取得。ID存在しない場合はNotFound例外を投げる。
-  public UserDataEntity findOneUserData(Integer id) {
-    return this.userDataMapper.findOneUserData(id)
-        .orElseThrow(
-            () -> new NotFoundException("idが " + id + " のデータは存在しません。"));
+  public UserDataResponse findOneUserData(int id) {
+    //パスパラメータ指定のIDに該当するデータを取得
+    UserDataEntity userDataEntity =
+        this.userDataMapper.findOneUserData(id).orElseThrow(() ->
+            new NotFoundException("idが " + id + " のデータは存在しません。"));
+
+    RefillMapper refillMapper = Mappers.getMapper(RefillMapper.class);
+    UserDataResponse userDataResponse =
+        refillMapper.useDataEntityToUserDataResponse(userDataEntity);
+    //郵便番号を引数に渡し返ってきた住所データをResponseクラスに詰める
+    userDataResponse.setAddress(
+        this.fetchAddress(userDataResponse.getPostcode()));
+    return userDataResponse;
   }
 
   @Transactional
   @Override
   //データ新規作成
-  public void saveUserData(UserDataEntity userDataEntity) {
+  public void saveUserData(UserDataForm userDataForm) {
+    //存在しない郵便番号であった場合は登録できないよう例外を投げる
+    if (fetchAddress(userDataForm.getPostcode()).equals("")) {
+      throw new BadRequestException(
+          "郵便番号" + userDataForm.getPostcode() + "は存在しません。データ登録に失敗しました。");
+    }
+    RefillMapper refillMapper = Mappers.getMapper(RefillMapper.class);
+    UserDataEntity userDataEntity =
+        refillMapper.useDataFormToUserDataEntity(userDataForm);
     userDataMapper.saveUserData(userDataEntity);
   }
 
   @Transactional
   @Override
   //データ更新
-  public void updateUserData(UserDataEntity userDataEntity) {
+  public void updateUserData(UserDataForm userDataForm, int id) {
+    //パスパラメータ指定のIDが存在するかチェック
+    UserDataResponse dataExistenceCheck = this.findOneUserData(id);
+    //ユーザIDはパスパラメータ、名前と郵便番号はbodyで受け取る。
+    //IDをformに詰める
+    userDataForm.setId(id);
+    RefillMapper refillMapper = Mappers.getMapper(RefillMapper.class);
+    UserDataEntity userDataEntity =
+        refillMapper.useDataFormToUserDataEntity(userDataForm);
     userDataMapper.updateUserData(userDataEntity);
   }
 
@@ -58,13 +89,15 @@ public class UserDataServiceImpl implements UserDataService {
   @Override
   //指定IDデータ削除
   public void deleteUserData(Integer id) {
+    //パスパラメータ指定のIDが存在するかチェック
+    UserDataResponse dataExistenceCheck = this.findOneUserData(id);
     userDataMapper.deleteUserData(id);
   }
 
 
   //Yahooデベロッパーネットワークにて郵便番号から住所を取得する
-  private static final String URL =
-      "https://map.yahooapis.jp/search/zip/V1/zipCodeSearch?query={postcode}&appid=dj00aiZpPXBHZkFNY2VmVkk3aSZzPWNvbnN1bWVyc2VjcmV0Jng9MTQ-&output=json";
+  @Value("${YAHOO_URL}")  //application.propertiesより取得
+  private String URL;
 
   @Override
   public String fetchAddress(String postCode) {
@@ -75,13 +108,15 @@ public class UserDataServiceImpl implements UserDataService {
     try {
       JsonNode jsonNode = objectMapper.readTree(postCodeJson);
       String count = jsonNode.get("ResultInfo").get("Count").toString();
-      if (count.equals("0")) {
-        throw new BadRequestException("郵便番号" + postCode + "は存在しません。");
+
+      //郵便番号が存在しない場合は空を返す（廃止になってしまった郵便番号への対処）
+      String userAddress = "";
+      if (!(count.equals("0"))) {
+        userAddress =
+            jsonNode.get("Feature").get(0).get("Property").get("Address")
+                .toString().replaceAll("\"", "");
       }
-      String address =
-          jsonNode.get("Feature").get(0).get("Property").get("Address")
-              .toString().replaceAll("\"", "");
-      return address;
+      return userAddress;
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }

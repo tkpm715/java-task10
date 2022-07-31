@@ -25,9 +25,8 @@ MySQL 8.0
 ## 動作概要
 
 ### ▼データ全件取得 (初期状態)  
-![2022-07-21_23h38_59](https://user-images.githubusercontent.com/101798620/180392663-311a33c6-991d-4f8f-b48a-ff4c87f9bf5a.png)
-
-
+![2022-07-31_21h32_58](https://user-images.githubusercontent.com/101798620/182026901-ca804a20-323f-40f3-b3be-53a8ded3385a.png)
+  
 ### ▼データ１件取得  
 パスパラメータにIDを設定し、該当ユーザーデータを取得。  更にそのデータに含まれる郵便番号に対する住所を外部APIから取得し、ユーザーデータと一緒にJson出力する。  
 ![2022-07-21_23h40_27](https://user-images.githubusercontent.com/101798620/180392814-3111b1a7-b35f-4b96-a8af-a0ef6b35cad8.png)
@@ -35,10 +34,17 @@ MySQL 8.0
 ※ 存在しないIDをパスパラメータに指定した場合404を返す。  
 ![2022-07-21_23h51_07](https://user-images.githubusercontent.com/101798620/180393404-c8f32d98-3217-4880-badc-a146dfa08c92.png)
   
+※ ユーザー情報を登録後に郵便番号が廃止された場合、住所(address)は空を返す。  
+![2022-07-31_21h34_52](https://user-images.githubusercontent.com/101798620/182026935-a3f4f48e-655c-4e8c-ad9d-7e822c46ceed.png)
+  
 
 ### ▼データ新規作成  
 ![2022-07-21_23h42_43](https://user-images.githubusercontent.com/101798620/180395240-a3081866-d4f0-478e-a039-c63fc6a17be9.png)
     
+※ 存在しない郵便番号が入力された場合、登録エラーを表示し、400を返す。  
+![2022-07-31_13h04_04](https://user-images.githubusercontent.com/101798620/182026770-dcc3c697-947e-4711-8601-60416ca630f5.png)
+
+  
 ※ 名前の入力が1～50文字でなかった場合400を返す。  
 ![2022-07-21_23h49_51](https://user-images.githubusercontent.com/101798620/180443225-de71414f-3bf0-4746-8d1d-cb8820297660.png)
 

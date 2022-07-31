@@ -1,16 +1,17 @@
 package com.raisetech.task10.service;
 
-import com.raisetech.task10.entity.UserDataEntity;
+import com.raisetech.task10.controller.UserDataResponse;
+import com.raisetech.task10.form.UserDataForm;
 import java.util.List;
 
 public interface UserDataService {
-  List<UserDataEntity> findAllUserData();
+  List<UserDataResponse> findAllUserData();
 
-  UserDataEntity findOneUserData(Integer id);
+  UserDataResponse findOneUserData(int id);
 
-  void saveUserData(UserDataEntity userDataEntity);
+  void saveUserData(UserDataForm userDataForm);
 
-  void updateUserData(UserDataEntity userDataEntity);
+  void updateUserData(UserDataForm userDataForm,int id);
 
   void deleteUserData(Integer id);
 
