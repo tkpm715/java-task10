@@ -94,16 +94,14 @@ public class UserDataServiceImpl implements UserDataService {
     userDataMapper.deleteUserData(id);
   }
 
-
-  //Yahooデベロッパーネットワークにて郵便番号から住所を取得する
-  @Value("${YAHOO_URL}")  //application.propertiesより取得
-  private String URL;
+  @Value("${YAHOO_URL}")
+  private String yahooURL;
 
   @Override
   public String fetchAddress(String postCode) {
     //郵便番号を引数で受け取り、外部apiから住所を取得しreturnする
     String postCodeJson =
-        restTemplate.getForObject(URL, String.class, postCode);
+        restTemplate.getForObject(yahooURL, String.class, postCode);
     ObjectMapper objectMapper = new ObjectMapper();
     try {
       JsonNode jsonNode = objectMapper.readTree(postCodeJson);
