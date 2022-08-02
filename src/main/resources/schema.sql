@@ -1,0 +1,6 @@
+create TABLE IF NOT EXISTS users(
+  id INT NOT NULL AUTO_INCREMENT,
+  name VARCHAR(50) NOT NULL,
+  postcode CHAR(7) NOT NULL,
+  PRIMARY KEY(id)
+);
