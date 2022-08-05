@@ -53,14 +53,16 @@ public class JWTAuthenticationFilter extends
 
   }
 
+  private static final ObjectMapper mapper = new ObjectMapper();
   // 認証の処理
   @Override
   public Authentication attemptAuthentication(HttpServletRequest req,
                                               HttpServletResponse res) throws
       AuthenticationException {
     try {
+
       // requestパラメータからユーザ情報を読み取る
-      LoginForm loginForm = new ObjectMapper().readValue(req.getInputStream(), LoginForm.class);
+      LoginForm loginForm = mapper.readValue(req.getInputStream(), LoginForm.class);
       // UsernamePasswordAuthenticationTokenを生成してauthenticationManagerに渡す。
       // UsernamePasswordAuthenticationFilterのデフォルト実装だとauthoritiesが設定されない
       return authenticationManager.authenticate(

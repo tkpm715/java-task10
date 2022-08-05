@@ -46,8 +46,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   //認証するユーザー情報をデータベースからロードする
 //その際、パスワードはBCryptで暗号化した値を利用する
-  @Autowired
-  public void configureAuth(AuthenticationManagerBuilder auth) throws Exception {
+//  @Autowired
+//  public void configureAuth(AuthenticationManagerBuilder auth) throws Exception {
+
+  @Override
+  public void configure(AuthenticationManagerBuilder auth) throws Exception {
     auth
         .userDetailsService(userDetailsService)
         .passwordEncoder(bCryptPasswordEncoder());
